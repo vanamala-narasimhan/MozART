@@ -1,0 +1,26 @@
+# This code is to pull connections from every access database through a creation of a list and a loop to 
+# connect an pull a table from every database in that connection list##
+#clear R
+rm(list = ls())
+#make sure you are running 32-bit RStudio by going to tools->global options
+
+#Load these package for MS Access Files and database connections, creating lists
+library(odbc)
+library(dplyr)
+library(purrr)
+
+Parent.Folder <- "C:[file path to name of folder containing every access file]"
+
+
+list_filenames <- list.files(Parent.Folder, full.names = TRUE, recursive = FALSE)
+acc_files <- list_filenames[grep(".mdb", list_filenames)]
+
+output <- lapply(acc_files, 
+                 function(file) {
+                   channel <- odbcConnectAccess(file) 
+                   data <- sqlQuery(channel, "select * from [table to select from databases]")
+                   close(channel)
+                   return(data) 
+                 })
+
+data <- bind_rows(output)
